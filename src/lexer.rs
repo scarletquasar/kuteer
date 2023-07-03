@@ -6,6 +6,8 @@ pub enum Token {
     Minus,
     Asterisk,
     Slash,
+    Equals,
+    Semicolon,
     EOF,
     Unknown,
 }
@@ -87,6 +89,7 @@ impl Lexer {
             if ch.is_alphabetic() || ch == '_' {
                 return self.get_identifier();
             }
+
             match ch {
                 '+' => {
                     self.advance();
@@ -104,8 +107,16 @@ impl Lexer {
                     self.advance();
                     return Token::Slash;
                 }
+                '=' => {
+                    self.advance();
+                    return Token::Equals;
+                }
+                ';' => {
+                    self.advance();
+                    return Token::Semicolon;
+                }
                 _ => {
-                    print!("{}", ch.to_string());
+                    self.advance();
                     return Token::Unknown
                 },
             }

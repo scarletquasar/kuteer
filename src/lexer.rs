@@ -115,9 +115,8 @@ pub struct Lexer {
 
 impl Lexer {
     pub fn new(input: &str) -> Lexer {
-        let final_input = input.to_owned() + "§";
         let mut lexer: Lexer = Lexer {
-            input: final_input.chars().collect(),
+            input: input.chars().collect(),
             position: 0,
             current_char: None,
         };
@@ -175,6 +174,14 @@ impl Lexer {
         Token::Identifier(identifier)
     }
 
+    pub fn peek(&mut self) -> char {
+        if self.position + 1 <= self.input.len() {
+            return self.input[self.position + 1];
+        }
+        
+        '\0'
+    }
+
     pub fn get_next_token(&mut self) -> Token {
         while let Some(ch) = self.current_char {
             if ch.is_whitespace() {
@@ -182,7 +189,6 @@ impl Lexer {
                 continue;
             }
             if ch.is_digit(10) {
-                println!("{}", ch);
                 return self.get_number();
             }
             if ch.is_alphabetic() || ch == '_' {
@@ -216,9 +222,9 @@ impl Lexer {
                 }
                 '.' => {
                     self.advance();
-                    if self.get_next_token() == Token::Dot {
+                    if self.peek() == '.' {
                         self.advance();
-                        if self.get_next_token() == Token::Dot {
+                        if self.peek() == '.' {
                             self.advance();
                             return Token::Ellipsis;
                         }
@@ -239,7 +245,7 @@ impl Lexer {
                 }
                 ':' => {
                     self.advance();
-                    if self.get_next_token() == Token::Semicolon {
+                    if self.peek() == ';' {
                         self.advance();
                         return Token::DoubleColon;
                     }
@@ -247,9 +253,9 @@ impl Lexer {
                 }
                 '=' => {
                     self.advance();
-                    if self.get_next_token() == Token::Equals {
+                    if self.peek() == '=' {
                         self.advance();
-                        if self.get_next_token() == Token::Equals {
+                        if self.peek() == '=' {
                             self.advance();
                             return Token::StrictEqual;
                         }
@@ -259,21 +265,22 @@ impl Lexer {
                 }
                 '+' => {
                     self.advance();
-                    if self.get_next_token() == Token::Equals {
+                    if self.peek() == '=' {
                         self.advance();
                         return Token::PlusEqual;
-                    } else if self.get_next_token() == Token::Plus {
+                    } else if self.peek() == '+' {
                         self.advance();
                         return Token::DoublePlus;
                     }
+
                     return Token::Plus;
                 }
                 '-' => {
                     self.advance();
-                    if self.get_next_token() == Token::Equals {
+                    if self.peek() == '=' {
                         self.advance();
                         return Token::MinusEqual;
-                    } else if self.get_next_token() == Token::Minus {
+                    } else if self.peek() == '-' {
                         self.advance();
                         return Token::DoubleMinus;
                     }
@@ -281,7 +288,7 @@ impl Lexer {
                 }
                 '*' => {
                     self.advance();
-                    if self.get_next_token() == Token::Equals {
+                    if self.peek() == '=' {
                         self.advance();
                         return Token::AsteriskEqual;
                     }
@@ -289,7 +296,7 @@ impl Lexer {
                 }
                 '/' => {
                     self.advance();
-                    if self.get_next_token() == Token::Equals {
+                    if self.peek() == '=' {
                         self.advance();
                         return Token::SlashEqual;
                     }
@@ -297,7 +304,7 @@ impl Lexer {
                 }
                 '%' => {
                     self.advance();
-                    if self.get_next_token() == Token::Equals {
+                    if self.peek() == '=' {
                         self.advance();
                         return Token::PercentEqual;
                     }
@@ -305,9 +312,9 @@ impl Lexer {
                 }
                 '!' => {
                     self.advance();
-                    if self.get_next_token() == Token::Equals {
+                    if self.peek() == '=' {
                         self.advance();
-                        if self.get_next_token() == Token::Equals {
+                        if self.peek() == '=' {
                             self.advance();
                             return Token::StrictNotEqual;
                         }
@@ -317,7 +324,7 @@ impl Lexer {
                 }
                 '&' => {
                     self.advance();
-                    if self.get_next_token() == Token::Equals {
+                    if self.peek() == '=' {
                         self.advance();
                         return Token::AmpersandEqual;
                     }
@@ -325,7 +332,7 @@ impl Lexer {
                 }
                 '|' => {
                     self.advance();
-                    if self.get_next_token() == Token::Equals {
+                    if self.peek() == '=' {
                         self.advance();
                         return Token::PipeEqual;
                     }
@@ -333,7 +340,7 @@ impl Lexer {
                 }
                 '^' => {
                     self.advance();
-                    if self.get_next_token() == Token::Equals {
+                    if self.peek() == '=' {
                         self.advance();
                         return Token::CaretEqual;
                     }
@@ -342,14 +349,14 @@ impl Lexer {
                 '<' => {
                     self.advance();
 
-                    if self.get_next_token() == Token::Equals {
+                    if self.peek() == '=' {
                         self.advance();
                         return Token::LessThanOrEqual;
                     }
 
-                    if self.get_next_token() == Token::LessThan {
+                    if self.peek() == '<' {
                         self.advance();
-                        if self.get_next_token() == Token::Equals {
+                        if self.peek() == '=' {
                             self.advance();
                             return Token::LeftShiftEqual;
                         }
@@ -360,14 +367,14 @@ impl Lexer {
                 '>' => {
                     self.advance();
 
-                    if self.get_next_token() == Token::Equals {
+                    if self.peek() == '=' {
                         self.advance();
                         return Token::GreaterThanOrEqual;
                     }
 
-                    if self.get_next_token() == Token::GreaterThan {
+                    if self.peek() == '>' {
                         self.advance();
-                        if self.get_next_token() == Token::Equals {
+                        if self.peek() == '=' {
                             self.advance();
                             return Token::RightShiftEqual;
                         }
@@ -375,10 +382,6 @@ impl Lexer {
                     }
                     return Token::GreaterThan;
                 },
-                '§' => {
-                    self.advance();
-                    return Token::Unknown;
-                }
                 _ => panic!("Invalid token!")
             }
         }

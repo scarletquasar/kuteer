@@ -115,8 +115,9 @@ pub struct Lexer {
 
 impl Lexer {
     pub fn new(input: &str) -> Lexer {
-        let mut lexer = Lexer {
-            input: input.chars().collect(),
+        let final_input = input.to_owned() + "§";
+        let mut lexer: Lexer = Lexer {
+            input: final_input.chars().collect(),
             position: 0,
             current_char: None,
         };
@@ -145,13 +146,15 @@ impl Lexer {
     pub fn get_number(&mut self) -> Token {
         let mut number = String::new();
         while let Some(ch) = self.current_char {
-            if ch.is_digit(10) || number.chars().next().unwrap().is_numeric() && ch == '.' {
+            if ch.is_digit(10) || ch == '.' {
                 number.push(ch);
                 self.advance();
-            } else {
+            }
+            else {
                 break;
             }
         }
+
         if let Ok(parsed) = number.parse::<f64>() {
             Token::NumericLiteral(parsed)
         } else {
@@ -179,6 +182,7 @@ impl Lexer {
                 continue;
             }
             if ch.is_digit(10) {
+                println!("{}", ch);
                 return self.get_number();
             }
             if ch.is_alphabetic() || ch == '_' {
@@ -371,6 +375,10 @@ impl Lexer {
                     }
                     return Token::GreaterThan;
                 },
+                '§' => {
+                    self.advance();
+                    return Token::Unknown;
+                }
                 _ => panic!("Invalid token!")
             }
         }

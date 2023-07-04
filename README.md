@@ -1,4 +1,4 @@
 # kuteer
-Portable, easy-to-use scripting interpretation tool
+JavaScript to rust transpiler with bindings support
 
 (in development)

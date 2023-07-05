@@ -94,12 +94,10 @@ pub enum Token {
     DoubleQuote,
     SingleQuote,
     TemplateQuote,
-    DoubleQuoteStringWrapper,
-    SingleQuoteStringWrapper,
-    TemplateStringWrapper,
     Identifier(String),
     NumericLiteral(f64),
     StringLiteral(String),
+    LineBreak,
 
     RegularExpressionLiteral(String),
     Template(String),
@@ -128,28 +126,12 @@ impl Lexer {
         lexer
     }
 
-    fn get_current_char(&self) -> char {
-        return match self.current_char {
-            Some(curr) => curr,
-            None => '\0',
-        }
-    }
-
     pub fn advance(&mut self) {
         if self.position < self.input.len() {
             self.current_char = Some(self.input[self.position]);
             self.position += 1;
         } else {
             self.current_char = None;
-        }
-    }
-
-    pub fn skip_whitespace(&mut self) {
-        while let Some(ch) = self.current_char {
-            if !ch.is_whitespace() {
-                break;
-            }
-            self.advance();
         }
     }
 
@@ -193,8 +175,8 @@ impl Lexer {
         '\0'
     }
 
-    pub fn reversePeek(&mut self) -> char {
-        if self.position - 1 >= 0 {
+    pub fn reverse_peek(&mut self) -> char {
+        if self.position as i32 - 1 >= 0 {
             return self.input[self.position - 1];
         }
         
@@ -203,11 +185,6 @@ impl Lexer {
 
     pub fn get_next_token(&mut self) -> Token {
         while let Some(ch) = self.current_char {
-            if ch.is_whitespace() {
-                self.skip_whitespace();
-                continue;
-            }
-
             if ch.is_digit(10) {
                 return self.get_number();
             }
@@ -217,6 +194,14 @@ impl Lexer {
             }
 
             match ch {
+                '\n' => {
+                    self.advance();
+                    return Token::LineBreak;
+                },
+                ' ' => {
+                    self.advance();
+                    return Token::Whitespace;
+                },
                 '(' => {
                     self.advance();
                     return Token::LeftParen;
@@ -405,24 +390,7 @@ impl Lexer {
                 },
                 '"' => {
                     self.advance();
-                    let mut final_value = String::new();
-
-                    loop {
-                        match self.peek() {
-                            '"' => {
-                                self.advance();
-                                return Token::StringLiteral(final_value);
-                            }
-                            '\n' | '\r' => {
-                                // Handle error: Unterminated string literal
-                                return Token::Error("Unterminated string literal".to_string());
-                            }
-                            _ => {
-                                final_value.push(self.get_current_char());
-                                self.advance();
-                            }
-                        }
-                    }
+                    return Token::DoubleQuote;
                 }
                 _ => panic!("Invalid token!")
             }

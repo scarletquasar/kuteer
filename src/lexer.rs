@@ -1,6 +1,47 @@
 #[derive(Debug, PartialEq)]
+pub enum ReservedWord {
+    Break,
+    Case,
+    Catch,
+    Class,
+    Const,
+    Continue,
+    Debugger,
+    Default,
+    Delete,
+    Do,
+    Else,
+    Enum,
+    Export,
+    Extends,
+    False,
+    Finally,
+    For,
+    Function,
+    If,
+    Import,
+    In,
+    Instanceof,
+    Let,
+    New,
+    Null,
+    Return,
+    Super,
+    Switch,
+    This,
+    Throw,
+    True,
+    Try,
+    Typeof,
+    Var,
+    Void,
+    While,
+    With,
+    Yield
+}
+
+#[derive(Debug, PartialEq)]
 pub enum Token {
-    // Punctuators
     LeftParen,
     RightParen,
     LeftBrace,
@@ -49,55 +90,18 @@ pub enum Token {
     DoublePlus,
     DoubleMinus,
     Arrow,
-    
-    // Keywords
-    Break,
-    Case,
-    Catch,
-    Class,
-    Const,
-    Continue,
-    Debugger,
-    Default,
-    Delete,
-    Do,
-    Else,
-    Enum,
-    Export,
-    Extends,
-    False,
-    Finally,
-    For,
-    Function,
-    If,
-    Import,
-    In,
-    Instanceof,
-    New,
-    Null,
-    Return,
-    Super,
-    Switch,
-    This,
-    Throw,
-    True,
-    Try,
-    Typeof,
-    Var,
-    Void,
-    While,
-    With,
-    Yield,
-    
-    // Identifiers
+
+    DoubleQuote,
+    SingleQuote,
+    TemplateQuote,
+    DoubleQuoteStringWrapper,
+    SingleQuoteStringWrapper,
+    TemplateStringWrapper,
     Identifier(String),
-    
-    // Literals
     NumericLiteral(f64),
     StringLiteral(String),
+
     RegularExpressionLiteral(String),
-    
-    // Others
     Template(String),
     LineTerminator,
     Whitespace,
@@ -122,6 +126,13 @@ impl Lexer {
         };
         lexer.advance();
         lexer
+    }
+
+    fn get_current_char(&self) -> char {
+        return match self.current_char {
+            Some(curr) => curr,
+            None => '\0',
+        }
     }
 
     pub fn advance(&mut self) {
@@ -182,15 +193,25 @@ impl Lexer {
         '\0'
     }
 
+    pub fn reversePeek(&mut self) -> char {
+        if self.position - 1 >= 0 {
+            return self.input[self.position - 1];
+        }
+        
+        '\0' 
+    }
+
     pub fn get_next_token(&mut self) -> Token {
         while let Some(ch) = self.current_char {
             if ch.is_whitespace() {
                 self.skip_whitespace();
                 continue;
             }
+
             if ch.is_digit(10) {
                 return self.get_number();
             }
+
             if ch.is_alphabetic() || ch == '_' {
                 return self.get_identifier();
             }
@@ -382,6 +403,27 @@ impl Lexer {
                     }
                     return Token::GreaterThan;
                 },
+                '"' => {
+                    self.advance();
+                    let mut final_value = String::new();
+
+                    loop {
+                        match self.peek() {
+                            '"' => {
+                                self.advance();
+                                return Token::StringLiteral(final_value);
+                            }
+                            '\n' | '\r' => {
+                                // Handle error: Unterminated string literal
+                                return Token::Error("Unterminated string literal".to_string());
+                            }
+                            _ => {
+                                final_value.push(self.get_current_char());
+                                self.advance();
+                            }
+                        }
+                    }
+                }
                 _ => panic!("Invalid token!")
             }
         }

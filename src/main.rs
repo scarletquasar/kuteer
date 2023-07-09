@@ -4,7 +4,7 @@ use crate::lexer::Token;
 pub mod lexer;
 
 fn main() {
-    let input = "let a = 42.5 + 10.5 + call() + 9.4 + \" test \n\"";
+    let input = "let b = await 42.5 + 10.5 + call() + 9.4 + \" test \n\"";
     let mut lexer = Lexer::new(input);
 
     loop {
